@@ -1,0 +1,32 @@
+- name: "Clone repo"
+  become: true
+  ansible.builtin.git:
+    repo: 'https://{{ coolify_git_provider }}/{{coolify_git_org}}/{{ coolify_git_repo }}.git'
+    dest: "{{ coolify_app_volume }}"
+    version: "{{ coolify_version | d('main') }}"
+    force: True
+
+- name: "Create install folders"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  become: yes
+  loop:
+    - "{{ coolify_data_volume }}"
+    - "{{ coolify_app_volume }}"
+
+- name: "Rights exe"
+  ansible.builtin.file:
+    path: "{{ coolify_app_volume }}/install.sh"
+    state: file
+    owner: "{{ coolify_user | d('root') }}"
+    group: "{{ coolify_user | d('root') }}"
+    mode: 0550
+  become: yes
+
+- name: Install
+  become: True
+  ansible.builtin.command:
+    chdir: "{{ coolify_app_volume }}"
+    cmd: "./install.sh {{ coolify_install_mode }}"
