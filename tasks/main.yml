@@ -1,7 +1,7 @@
 - name: "Clone repo"
   become: true
   ansible.builtin.git:
-    repo: 'https://{{ coolify_git_provider }}/{{coolify_git_org}}/{{ coolify_git_repo }}.git'
+    repo: 'https://{{ coolify_git_provider }}/{{ coolify_git_org }}/{{ coolify_git_repo }}.git'
     dest: "{{ coolify_app_volume }}"
     version: "{{ coolify_version | d('main') }}"
     force: True
@@ -15,16 +15,14 @@
   loop:
     - "{{ coolify_data_volume }}"
     - "{{ coolify_app_volume }}"
-    - "{{ coolify_config_dir }}"
 
 - name: Template profile and service file
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   loop:
-    - { src: etc/profile.d/coolify.sh.j2, dest: etc/profile.d/coolify.sh }
     - { src: .env.j2, dest: "{{ coolify_app_volume }}/.env" }
-    - { src: coolify.service.j2, dest: "{{ coolify_config_dir }}/coolify.service" }
+    - { src: coolify.service.j2, dest: "/etc/systemd/system/coolify.service" }
 
 - name: "Rights exe"
   ansible.builtin.file:
@@ -45,7 +43,7 @@
     - restart coolify
 
 - name: Enable coolify
-  systemd:
+  ansible.builtin.systemd:
     name: coolify
     enabled: True
   become: True

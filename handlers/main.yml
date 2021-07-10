@@ -1,7 +1,7 @@
 ---
 - name: reload systemd
   command: systemctl daemon-reload
-  become: true
+  become: True
 
 - name: restart coolify
   service:

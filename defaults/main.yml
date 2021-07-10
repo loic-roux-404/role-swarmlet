@@ -8,7 +8,6 @@ coolify_version: main
 
 # Docker container and sys
 coolify_user: root
-coolify_config_dir: /etc/coolify
 coolify_container_name: coolify-single
 coolify_app_volume: /root/coollabs/coolify
 coolify_data_volume: /data/coolify
@@ -36,7 +35,6 @@ coolify_env:
 
   # Mongodb
   # Values in case if you are using our Mongodb installation - CHANGE user and password fields!
-  MONGODB_HOST: coollabs-mongodb
   MONGODB_PORT: 27017
   MONGODB_USER: supercooldbuser
   MONGODB_PASSWORD: developmentPassword4db
