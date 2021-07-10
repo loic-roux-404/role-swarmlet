@@ -6,7 +6,10 @@ coolify_git_repo: coolify
 # Options : main, next ,vX.X.X
 coolify_version: main
 
-# Docker
+# Docker container and sys
+coolify_user: root
+coolify_config_dir: /etc/coolify
+coolify_container_name: coolify-single
 coolify_app_volume: /root/coollabs/coolify
 coolify_data_volume: /data/coolify
 

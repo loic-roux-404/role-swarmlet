@@ -15,13 +15,23 @@
   loop:
     - "{{ coolify_data_volume }}"
     - "{{ coolify_app_volume }}"
+    - "{{ coolify_config_dir }}"
+
+- name: Template profile and service file
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: etc/profile.d/coolify.sh.j2, dest: etc/profile.d/coolify.sh }
+    - { src: .env.j2, dest: "{{ coolify_app_volume }}/.env" }
+    - { src: coolify.service.j2, dest: "{{ coolify_config_dir }}/coolify.service" }
 
 - name: "Rights exe"
   ansible.builtin.file:
     path: "{{ coolify_app_volume }}/install.sh"
     state: file
-    owner: "{{ coolify_user | d('root') }}"
-    group: "{{ coolify_user | d('root') }}"
+    owner: "{{ coolify_user }}"
+    group: "{{ coolify_user }}"
     mode: 0550
   become: yes
 
@@ -30,3 +40,12 @@
   ansible.builtin.command:
     chdir: "{{ coolify_app_volume }}"
     cmd: "./install.sh {{ coolify_install_mode }}"
+  notify:
+    - reload systemd
+    - restart coolify
+
+- name: Enable coolify
+  systemd:
+    name: coolify
+    enabled: True
+  become: True

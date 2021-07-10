@@ -1,8 +1,10 @@
 ---
-- name: restart coolify
-  command: docker-compose up -d
+- name: reload systemd
+  command: systemctl daemon-reload
   become: true
 
-- name: rebuild coolify
-  command: docker-compose build
-  become: true
+- name: restart coolify
+  service:
+    name: coolify
+    state: restarted
+  become: True

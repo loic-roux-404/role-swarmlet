@@ -1,0 +1,13 @@
+[Unit]
+Description=Coolify heroku self hosted alternative
+After=network-online.target
+
+[Service]
+Restart=on-failure
+WorkingDirectory={{ coolify_app_volume }}
+ExecStart=/bin/sh -c 'source /etc/profile.d/coolify.sh && coolify-services && coolify-run'
+ExecStop=/bin/sh -c 'source /etc/profile.d/coolify.sh && coolify-services down && coolify-action stop'
+ExecReload=/bin/sh -c 'source /etc/profile.d/coolify.sh && coolify-services restart && coolify-action restart'
+
+[Install]
+WantedBy=multi-user.target
