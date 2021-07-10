@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+#
+# Custom coolify installer
+#
+# {{ coolify_data_volume }}
+#
+#################
+
+buildCoolify() {
+    cd {{ coolify_app_volume }}
+    docker build --label coolify-reserve=true -t coolify -f {{ coolify_data_volume }}/Dockerfile .
+    cd {{ coolify_data_volume }}
+
+    if [ $? -ne 0 ]; then
+        echo '
+    ####################################
+    #### Ooops something not okay! #####
+    ####################################'
+        exit 1
+    fi
+}
+
+parseEnvAndDeploy() {
+    cp -f {{ coolify_app_volume }}/install/coolify-template.yml $(pwd)/coolify-template.yml
+    set -a && source .env && set +a && envsubst < coolify-template.yml | docker stack deploy -c - coollabs-coolify
+}
+
+# source .env
+docker swarm init --advertise-addr '{{ coolify_swarm_addr }}' || true
+# docker network create ${DOCKER_NETWORK} --driver overlay || true
+
+case "$1" in
+    "all")
+       buildCoolify
+       echo '
+#################################
+#### Rebuilding everything. #####
+#################################'
+        docker stack rm coollabs-coolify
+        parseEnvAndDeploy
+    ;;
+    "coolify")
+       buildCoolify
+       echo '
+##############################
+#### Rebuilding Coolify. #####
+##############################'
+        docker service rm coollabs-coolify_coolify
+        parseEnvAndDeploy
+    ;;
+    "proxy")
+       buildCoolify
+       echo '
+############################
+#### Rebuilding Proxy. #####
+############################'
+        docker service rm coollabs-coolify_proxy
+        parseEnvAndDeploy
+    ;;
+    "upgrade-phase-1")
+        buildCoolify
+        echo '
+################################
+#### Upgrading Coolify P1. #####
+################################'
+    ;;
+    "upgrade-phase-2")
+        echo '
+################################
+#### Upgrading Coolify P2. #####
+################################'
+        docker service rm coollabs-coolify_coolify
+        parseEnvAndDeploy
+    ;;
+    *)
+        exit 1
+     ;;
+esac

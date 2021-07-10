@@ -5,13 +5,14 @@ coolify_git_org: coollabsio
 coolify_git_repo: coolify
 # Options : main, next ,vX.X.X
 coolify_version: main
+coolify_force_update: False
 
 # Docker container and sys
 coolify_user: root
 coolify_container_name: coolify-single
 coolify_app_volume: /root/coollabs/coolify
 coolify_data_volume: /data/coolify
-
+coolify_swarm_addr: "{{ ansible_default_ipv4.interface }}"
 # Install script
 # Options :
 # "all"
