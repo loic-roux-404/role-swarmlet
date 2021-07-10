@@ -21,8 +21,9 @@
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   loop:
-    - { src: .env.j2, dest: "{{ coolify_app_volume }}/.env" }
+    - { src: .env.j2, dest: "{{ coolify_data_volume }}/.env" }
     - { src: coolify.service.j2, dest: "/etc/systemd/system/coolify.service" }
+    - { src: install.sh.j2, dest: "{{ coolify_data_volume }}/install.sh" }
 
 - name: "Rights exe"
   ansible.builtin.file:
@@ -36,7 +37,7 @@
 - name: Install
   become: True
   ansible.builtin.command:
-    chdir: "{{ coolify_app_volume }}"
+    chdir: "{{ coolify_data_volume }}"
     cmd: "./install.sh {{ coolify_install_mode }}"
   notify:
     - reload systemd
