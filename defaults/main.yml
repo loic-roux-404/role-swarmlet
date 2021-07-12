@@ -38,10 +38,9 @@ coolify_env_default:
 
   # Mongodb
   # Values in case if you are using our Mongodb installation - CHANGE user and password fields!
-  MONGODB_HOST: coollabs-mongodb
-  MONGODB_PORT: 27017
-  MONGODB_USERNAME: supercooldbuser
+  MONGODB_USER: root
   MONGODB_PASSWORD: developmentPassword4db
+  MONGODB_ROOT_PASSWORD: rootPassword4db
   MONGODB_DB: coolLabs-prod
 
   # Frontend only variables

@@ -27,11 +27,11 @@ services:
       - --entrypoints.websecure.address=:443
       - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.letsencrypt.acme.email='{{ _coolify_env.EMAIL }}'
+      - --certificatesresolvers.letsencrypt.acme.email={{ _coolify_env.EMAIL }}
       - --certificatesresolvers.letsencrypt.acme.storage=/data/coolify/acme.json
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /data/coolify:/data/coolify
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - {{ coolify_data_volume }}:/data/coolify:rw
     networks:
       - {{ _coolify_env.DOCKER_NETWORK }}
     deploy:
@@ -67,30 +67,23 @@ services:
         - 'traefik.http.middlewares.global-compress.compress=true'
   mongodb:
     image: bitnami/mongodb:4.4
-    hostname: {{ _coolify_env.MONGODB_HOST }}
+    hostname: coollabs-mongodb
     deploy:
       update_config:
         parallelism: 1
-        delay: 2s
+        delay: 5s
         order: start-first
       replicas: 1
     ports:
-      - target: {{ _coolify_env.MONGODB_PORT }}
-        published: {{ _coolify_env.MONGODB_PORT }}
+      - target: 27017
+        published: 27017
         protocol: tcp
         mode: host
     env_file:
       - .env
-    environment:
-      - MONGODB_DISABLE_SYSTEM_LOG=false
-      - MONGODB_ROOT_PASSWORD=$MONGODB_PASSWORD
-      - MONGODB_HOST=$MONGODB_HOST
-      - MONGODB_USERNAME=$MONGODB_USERNAME
-      - MONGODB_PASSWORD=$MONGODB_PASSWORD_NON_ENC
-      - MONGODB_DATABASE=$MONGODB_DB
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - coollabs-mongodb-data:/bitnami/mongodb
+      - {{ coolify_data_volume }}/dbdata:/bitnami/mongodb:rw
     networks:
       - {{ _coolify_env.DOCKER_NETWORK }}
 
@@ -109,8 +102,8 @@ services:
     command: 'yarn start'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - MONGODB_USER=$MONGODB_USERNAME
+    depends_on:
+      - mongodb
     deploy:
       update_config:
         parallelism: 1
@@ -124,9 +117,6 @@ services:
         - 'traefik.http.routers.coolify.rule=Host(`coolify.{{ _coolify_env.DOMAIN }}`) && PathPrefix(`/`)'
         - 'traefik.http.services.coolify.loadbalancer.server.port=3000'
         - 'traefik.http.routers.coolify.middlewares=global-compress'
-
-volumes:
-  coollabs-mongodb-data: {}
 
 networks:
   {{ _coolify_env.DOCKER_NETWORK }}:

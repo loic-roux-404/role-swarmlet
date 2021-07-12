@@ -12,21 +12,26 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
+    owner: "{{ coolify_user }}"
+    group: "{{ coolify_user }}"
     mode: 0755
   become: yes
   loop:
     - "{{ coolify_data_volume }}"
+    - "{{ coolify_data_volume }}/dbdata"
     - "{{ coolify_app_volume }}"
 
 - name: Template profile and service file
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
+    owner: "{{ coolify_user }}"
+    group: "{{ coolify_user }}"
     mode: 0640
   loop:
     - { src: .env.j2, dest: "{{ coolify_data_volume }}/.env" }
     - { src: install.sh.j2, dest: "{{ coolify_data_volume }}/install.sh" }
-    - { src: Dockerfile.j2, dest: "{{ coolify_data_volume }}/Dockerfile" }
+    - { src: Dockerfile, dest: "{{ coolify_data_volume }}/Dockerfile" }
     - { src: docker-compose.yml.j2, dest: "{{ coolify_data_volume }}/docker-compose.yml" }
 
 - name: "Rights exe"
