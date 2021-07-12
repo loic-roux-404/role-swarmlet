@@ -21,13 +21,12 @@ buildCoolify() {
 }
 
 parseEnvAndDeploy() {
-    cp -f {{ coolify_app_volume }}/install/coolify-template.yml $(pwd)/coolify-template.yml
-    set -a && source .env && set +a && envsubst < coolify-template.yml | docker stack deploy -c - coollabs-coolify
+    docker stack deploy -c docker-compose.yml coollabs-coolify
 }
 
-# source .env
+source .env
 docker swarm init --advertise-addr '{{ coolify_swarm_addr }}' || true
-# docker network create ${DOCKER_NETWORK} --driver overlay || true
+docker network create ${DOCKER_NETWORK} --driver overlay || true
 
 case "$1" in
     "all")

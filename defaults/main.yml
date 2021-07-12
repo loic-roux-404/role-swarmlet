@@ -22,12 +22,14 @@ coolify_swarm_addr: "{{ ansible_default_ipv4.interface }}"
 # "upgrade-phase-2"
 coolify_install_mode: all
 
-coolify_env:
+coolify_env_default:
   # Domain where your Coolify instance will be available and reachable.
   # It's the same as you set in Github OAuth App and Github App as <domain>.
-  DOMAIN:
+  DOMAIN: localhost
   ## Let's Encrypt contact email required
-  EMAIL:
+  EMAIL: test@localhost
+
+  DOCKER_NETWORK: coolabs
 
   # JWT Token Sign Key for logging you in to Coolify's frontend
   JWT_SIGN_KEY: jwt-key
@@ -36,8 +38,9 @@ coolify_env:
 
   # Mongodb
   # Values in case if you are using our Mongodb installation - CHANGE user and password fields!
+  MONGODB_HOST: coollabs-mongodb
   MONGODB_PORT: 27017
-  MONGODB_USER: supercooldbuser
+  MONGODB_USERNAME: supercooldbuser
   MONGODB_PASSWORD: developmentPassword4db
   MONGODB_DB: coolLabs-prod
 
@@ -51,3 +54,5 @@ coolify_env:
 
   # It should look like this. Newlines breaks with \n
   GITHUB_APP_PRIVATE_KEY: ''
+
+_coolify_env: "{{ coolify_env_default | combine(coolify_env) }}"
