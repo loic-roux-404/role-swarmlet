@@ -10,7 +10,7 @@ coolify_force_update: False
 # Docker container and sys
 coolify_user: root
 coolify_container_name: coolify-single
-coolify_app_volume: /root/coollabs/coolify
+coolify_app_volume: /data/coolify/repo
 coolify_data_volume: /data/coolify
 coolify_swarm_addr: "{{ ansible_default_ipv4.interface }}"
 # Install script

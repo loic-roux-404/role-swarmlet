@@ -90,8 +90,7 @@ services:
   coolify:
     image: coolify
     hostname: coollabs-coolify
-    env_file:
-      - .env
+
     networks:
       - {{ _coolify_env.DOCKER_NETWORK }}
     ports:
@@ -100,6 +99,8 @@ services:
         protocol: tcp
         mode: host
     command: 'yarn start'
+    env_file:
+      - .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:

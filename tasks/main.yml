@@ -1,4 +1,10 @@
 ---
+- name: "Delete old env file if exist"
+  ansible.builtin.file:
+    path: "{{ coolify_data_volume }}/.env"
+    state: absent
+  become: yes
+
 - name: "Clone repo"
   become: true
   ansible.builtin.git:
@@ -34,6 +40,12 @@
     - { src: Dockerfile, dest: "{{ coolify_data_volume }}/Dockerfile" }
     - { src: docker-compose.yml.j2, dest: "{{ coolify_data_volume }}/docker-compose.yml" }
 
+- name: Create env symlink
+  file:
+    src: "{{ coolify_data_volume }}/.env"
+    dest: "{{ coolify_app_volume }}/.env"
+    state: link
+
 - name: "Rights exe"
   ansible.builtin.file:
     path: "{{ coolify_data_volume }}/install.sh"
@@ -43,7 +55,7 @@
     mode: 0550
   become: yes
 
-- name: Install
+- name: Deploy swarm stack
   become: True
   ansible.builtin.command:
     chdir: "{{ coolify_data_volume }}"
