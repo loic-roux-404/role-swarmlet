@@ -80,10 +80,10 @@ services:
         protocol: tcp
         mode: host
     env_file:
-      - .env
+      - {{ coolify_app_volume }}/.env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - {{ coolify_data_volume }}/dbdata:/bitnami/mongodb:rw
+      - {{ coolify_app_dir }}/dbdata:/bitnami/mongodb:rw
     networks:
       - {{ _coolify_env.DOCKER_NETWORK }}
 
@@ -100,7 +100,7 @@ services:
         mode: host
     command: 'yarn start'
     env_file:
-      - .env
+      - {{ coolify_app_volume }}/.env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:

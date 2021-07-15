@@ -19,6 +19,7 @@
   loop:
     - "{{ coolify_data_volume }}"
     - "{{ coolify_data_volume }}/dbdata"
+    - "{{ coolify_app_dir }}"
     - "{{ coolify_app_volume }}"
 
 - name: Template profile and service file
@@ -29,7 +30,6 @@
     group: "{{ coolify_user }}"
     mode: 0640
   loop:
-    - { src: .env.j2, dest: "{{ coolify_data_volume }}/.env" }
     - { src: .env.j2, dest: "{{ coolify_app_volume }}/.env" }
     - { src: install.sh.j2, dest: "{{ coolify_data_volume }}/install.sh" }
     - { src: Dockerfile, dest: "{{ coolify_data_volume }}/Dockerfile" }

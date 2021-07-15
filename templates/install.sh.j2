@@ -24,7 +24,7 @@ parseEnvAndDeploy() {
     docker stack deploy -c docker-compose.yml coollabs-coolify
 }
 
-source .env
+source {{ coolify_app_volume }}/.env
 docker swarm init --advertise-addr '{{ coolify_swarm_addr }}' || true
 docker network create ${DOCKER_NETWORK} --driver overlay || true
 

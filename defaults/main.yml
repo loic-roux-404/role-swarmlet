@@ -10,7 +10,8 @@ coolify_force_update: False
 # Docker container and sys
 coolify_user: root
 coolify_container_name: coolify-single
-coolify_app_volume: "{{ '/root/coolify-repo' if coolify_user == 'root' else ('/home/%s/coolify-repo' % coolify_user) }}"
+coolify_app_dir: "{{ '/root' if coolify_user == 'root' else '/home/%s' % coolify_user }}"
+coolify_app_volume: "{{ '%s/coolify-repo' % coolify_app_dir }}"
 coolify_data_volume: /data/coolify
 coolify_swarm_addr: "{{ ansible_default_ipv4.interface }}"
 # Install script
