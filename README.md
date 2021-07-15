@@ -1,13 +1,18 @@
-# Traefik
+# Coolify
 
-Basic traefik configuration
+Install coolify self hosted heroku alternative
+
+### Roadmap
+
+- [ ] Create full github app with api
+- [ ] Use ansible Swarm collection
+- [ ] Mongo replicas
 
 ## Install to requirements.yml
 
 ```
-- src: git+git@github.com:smartlogic/ansible-role-traefik
-  name: traefik
-  version: 0.2.0
+- src: git+git@github.com:loic-roux-404/role-coolify
+  version: master
 ```
 
 ## Requirements
@@ -16,27 +21,18 @@ None
 
 ## Role Variables
 
-- `traefik_version` - Which version of traefik to download
-- `traefik_checksum` - The sha256 checksum of the traefik download
-- `traefik_config` - The file to use for `config.toml`
-  - Default: `config.toml`
+- Check [defaults.yml](./defaults/main.yml)
 
 ## Dependencies
 
 None
-
-## Example Configuration
-
-```yaml
-traefik_config: "{{ playbook_dir }}/files/traefik-config.toml"
-```
 
 ## Example Playbook
 
 ```yaml
 - hosts: servers
   roles:
-    - { role: traefik }
+    - { role: role-coolify }
 ```
 
 ## License
@@ -45,4 +41,4 @@ MIT
 
 ## Author Information
 
-SmartLogic. https://smartlogic.io
+[Loic Roux](github.com/loic-roux-404)

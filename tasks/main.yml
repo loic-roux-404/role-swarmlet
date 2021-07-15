@@ -1,10 +1,4 @@
 ---
-- name: "Delete old env file if exist"
-  ansible.builtin.file:
-    path: "{{ coolify_data_volume }}/.env"
-    state: absent
-  become: yes
-
 - name: "Clone repo"
   become: true
   ansible.builtin.git:
@@ -36,15 +30,10 @@
     mode: 0640
   loop:
     - { src: .env.j2, dest: "{{ coolify_data_volume }}/.env" }
+    - { src: .env.j2, dest: "{{ coolify_app_volume }}/.env" }
     - { src: install.sh.j2, dest: "{{ coolify_data_volume }}/install.sh" }
     - { src: Dockerfile, dest: "{{ coolify_data_volume }}/Dockerfile" }
     - { src: docker-compose.yml.j2, dest: "{{ coolify_data_volume }}/docker-compose.yml" }
-
-- name: Create env symlink
-  file:
-    src: "{{ coolify_data_volume }}/.env"
-    dest: "{{ coolify_app_volume }}/.env"
-    state: link
 
 - name: "Rights exe"
   ansible.builtin.file:
@@ -60,3 +49,9 @@
   ansible.builtin.command:
     chdir: "{{ coolify_data_volume }}"
     cmd: "./install.sh {{ coolify_install_mode }}"
+
+- name: "Delete old env file to avoid git clone break"
+  ansible.builtin.file:
+    path: "{{ coolify_app_volume }}/.env"
+    state: absent
+  become: yes

@@ -10,7 +10,7 @@ coolify_force_update: False
 # Docker container and sys
 coolify_user: root
 coolify_container_name: coolify-single
-coolify_app_volume: /data/coolify/repo
+coolify_app_volume: "{{ '/root/coolify-repo' if coolify_user == 'root' else ('/home/%s/coolify-repo' % coolify_user) }}"
 coolify_data_volume: /data/coolify
 coolify_swarm_addr: "{{ ansible_default_ipv4.interface }}"
 # Install script
@@ -25,7 +25,7 @@ coolify_install_mode: all
 coolify_env_default:
   # Domain where your Coolify instance will be available and reachable.
   # It's the same as you set in Github OAuth App and Github App as <domain>.
-  DOMAIN: localhost
+  DOMAIN: "{{ hostvars[inventory_hostname].ansible_host }}"
   ## Let's Encrypt contact email required
   EMAIL: test@localhost
 
