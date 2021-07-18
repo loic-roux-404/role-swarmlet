@@ -4,9 +4,9 @@ Install coolify self hosted heroku alternative
 
 ### Roadmap
 
-- [ ] Create full github app with api
 - [ ] Use ansible Swarm collection
 - [ ] Mongo replicas
+- ~~[ ] Create full github app with api (complicated)~~
 
 ## Install to requirements.yml
 

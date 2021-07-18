@@ -1,57 +1,7 @@
 ---
-- name: "Clone repo"
-  become: true
-  ansible.builtin.git:
-    repo: 'https://{{ coolify_git_provider }}/{{ coolify_git_org }}/{{ coolify_git_repo }}.git'
-    dest: "{{ coolify_app_volume }}"
-    version: "{{ coolify_version | d('main') }}"
-    force: "{{ coolify_force_update | d(False) }}"
-  ignore_errors: "{{ (coolify_force_update | d(False)) == False }}"
+- include: github_app.yml
+  when:
+    - coolify_github_api_token | d(False)
+    - coolify_github_app_create_server
 
-- name: "Create install folders"
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ coolify_user }}"
-    group: "{{ coolify_user }}"
-    mode: 0755
-  become: yes
-  loop:
-    - "{{ coolify_data_volume }}"
-    - "{{ coolify_data_volume }}/dbdata"
-    - "{{ coolify_app_dir }}"
-    - "{{ coolify_app_volume }}"
-
-- name: Template profile and service file
-  ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: "{{ coolify_user }}"
-    group: "{{ coolify_user }}"
-    mode: 0640
-  loop:
-    - { src: .env.j2, dest: "{{ coolify_app_volume }}/.env" }
-    - { src: install.sh.j2, dest: "{{ coolify_data_volume }}/install.sh" }
-    - { src: Dockerfile, dest: "{{ coolify_data_volume }}/Dockerfile" }
-    - { src: docker-compose.yml.j2, dest: "{{ coolify_data_volume }}/docker-compose.yml" }
-
-- name: "Rights exe"
-  ansible.builtin.file:
-    path: "{{ coolify_data_volume }}/install.sh"
-    state: file
-    owner: "{{ coolify_user }}"
-    group: "{{ coolify_user }}"
-    mode: 0550
-  become: yes
-
-- name: Deploy swarm stack
-  become: True
-  ansible.builtin.command:
-    chdir: "{{ coolify_data_volume }}"
-    cmd: "./install.sh {{ coolify_install_mode }}"
-
-- name: "Delete old env file to avoid git clone break"
-  ansible.builtin.file:
-    path: "{{ coolify_app_volume }}/.env"
-    state: absent
-  become: yes
+- include: stack.yml

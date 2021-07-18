@@ -115,7 +115,7 @@ services:
         - 'traefik.enable=true'
         - 'traefik.http.routers.coolify.entrypoints=websecure'
         - 'traefik.http.routers.coolify.tls.certresolver=letsencrypt'
-        - 'traefik.http.routers.coolify.rule=Host(`coolify.{{ _coolify_env.DOMAIN }}`) && PathPrefix(`/`)'
+        - 'traefik.http.routers.coolify.rule=Host(`{{ _coolify_env.DOMAIN }}`) && PathPrefix(`/`)'
         - 'traefik.http.services.coolify.loadbalancer.server.port=3000'
         - 'traefik.http.routers.coolify.middlewares=global-compress'
 

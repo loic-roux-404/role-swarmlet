@@ -6,6 +6,14 @@
 #
 #################
 
+if [ ! -f "{{ coolify_app_volume }}/.env" ]; then
+    echo '
+####################################
+#### Missing env file required in process #####
+####################################'
+    exit 1
+fi
+
 buildCoolify() {
     cd {{ coolify_app_volume }}
     docker build --label coolify-reserve=true -t coolify -f {{ coolify_data_volume }}/Dockerfile .
@@ -13,14 +21,14 @@ buildCoolify() {
 
     if [ $? -ne 0 ]; then
         echo '
-    ####################################
-    #### Ooops something not okay! #####
-    ####################################'
+####################################
+#### Ooops something not okay! #####
+####################################'
         exit 1
     fi
 }
 
-parseEnvAndDeploy() {
+deploy() {
     docker stack deploy -c docker-compose.yml coollabs-coolify
 }
 
@@ -36,7 +44,7 @@ case "$1" in
 #### Rebuilding everything. #####
 #################################'
         docker stack rm coollabs-coolify
-        parseEnvAndDeploy
+        deploy
     ;;
     "coolify")
        buildCoolify
@@ -45,16 +53,23 @@ case "$1" in
 #### Rebuilding Coolify. #####
 ##############################'
         docker service rm coollabs-coolify_coolify
-        parseEnvAndDeploy
+        deploy
     ;;
     "proxy")
-       buildCoolify
        echo '
 ############################
 #### Rebuilding Proxy. #####
 ############################'
         docker service rm coollabs-coolify_proxy
-        parseEnvAndDeploy
+        deploy
+    ;;
+    "mongodb")
+       echo '
+############################
+#### Rebuilding Db. #####
+############################'
+        docker service rm coollabs-coolify_mongodb
+        deploy
     ;;
     "upgrade-phase-1")
         buildCoolify
@@ -69,7 +84,7 @@ case "$1" in
 #### Upgrading Coolify P2. #####
 ################################'
         docker service rm coollabs-coolify_coolify
-        parseEnvAndDeploy
+        deploy
     ;;
     *)
         exit 1
