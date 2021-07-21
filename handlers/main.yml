@@ -1,10 +1,7 @@
 ---
-- name: reload systemd
-  command: systemctl daemon-reload
-  become: True
 
-- name: restart coolify
-  service:
-    name: coolify
-    state: restarted
-  become: True
+# - name: restart swarmlet
+#   service:
+#     name: swarmlet
+#     state: restarted
+#   become: True

@@ -1,6 +1,6 @@
 galaxy_info:
   author: Loic Roux
-  description: Set up coolify
+  description: Set up swarmlet PaaS
   company: SmartLogic
   license: MIT
   min_ansible_version: 2.9
@@ -18,10 +18,11 @@ galaxy_info:
     - app
     - docker
     - traefik
-    - "heroku like"
-dependencies:
-  - name: role-docker
-    src: nickjj.docker
-    version: v2.1.0
-    docker__state: "present"
-    docker__users: [root]
+    - "PaaS"
+dependencies: []
+  # recommanded
+  # - name: role-docker
+  #   src: nickjj.docker
+  #   version: v2.1.0
+  #   docker__state: "present"
+

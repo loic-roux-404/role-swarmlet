@@ -1,0 +1,91 @@
+---
+- name: 'Create install folder'
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ swarmlet_user }}"
+    group: "{{ swarmlet_user }}"
+    mode: "{{ item.mode | d('0755') }}"
+  loop:
+    - { path: "{{ swarmlet_location }}" }
+    - { path: "{{ swarmlet_location_source }}" }
+    - { path: "{{ swarmlet_ssh_dir }}", mode: "0700" }
+
+- name: 'Get install script'
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/{{ swarmlet_repo }}/{{ swarmlet_version }}/install"
+    dest: /tmp/swarmlet-install.sh
+    mode: '0550'
+    owner: "{{ swarmlet_user }}"
+    group: "{{ swarmlet_user }}"
+
+- set_fact:
+    _swarmlet_options: "\
+      {% for k, v in swarmlet_options.items() -%}
+      {{ k }}='{{ v }}'
+      {% endfor -%}"
+
+- name: clean old install if needed
+  become: True
+  become_user: root
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /root/.ssh
+    - /tmp/swarmlet
+    - "{{ swarmlet_location_source }}"
+
+- name: 'deploy key - Generate'
+  community.crypto.openssh_keypair:
+    path: "{{ swarmlet_ssh_deploy_key }}"
+    size: 2048
+    comment: "swarmlet"
+  register: deploy_key
+  tags: [ssh-swarmlet]
+
+- debug: msg="{{ _swarmlet_options }}"
+
+- name: 'Install'
+  environment: "{{ swarmlet_env }}"
+  ansible.builtin.shell: "cat /tmp/swarmlet-install.sh | bash -s {{ _swarmlet_options }}"
+  become: True
+  become_user: root
+
+- name: "deploy key - add to authorized keys"
+  ansible.posix.authorized_key:
+    path: "{{ swarmlet_ssh_authorized_keys_file }}"
+    key: "{{ item }}"
+    # TODO key_options: 'no-port-forwarding,from="10.0.1.1"' Only from git CI provider
+    user: "{{ swarmlet_user }}"
+    state: present
+  loop: "{{ swarmlet_ssh_authorized_keys + [ deploy_key.public_key ] }}"
+  when:
+    - swarmlet_ssh_authorized_keys | length >= 1
+    - deploy_key.public_key | d(False)
+  tags: [ssh-swarmlet]
+
+# TODO : upload this to github
+- name: 'deploy key - Fetch on host in /tmp/swarmlet_private_key'
+  ansible.builtin.fetch:
+    src: "{{ swarmlet_ssh_deploy_key }}"
+    dest: /tmp/swarmlet_private_key
+    flat: yes
+  tags: [ssh-swarmlet]
+
+- name: "deploy key - Add ssh authorized file to ssh config"
+  lineinfile:
+    path: "/etc/sshd_config"
+    regexp: '^AuthorizedKeysFile'
+    create: True
+    line: "AuthorizedKeysFile ~/.ssh/authorized_keys {{ swarmlet_ssh_authorized_keys_file }}"
+  tags: [ssh-swarmlet]
+
+- name: 'Clean'
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/swarmlet-install.sh
+    - "{{ swarmlet_ssh_deploy_key }}"
+  tags: [clean-swarmlet]

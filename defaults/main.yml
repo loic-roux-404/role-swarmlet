@@ -1,98 +1,77 @@
 ---
-# Base
-coolify_domain: "coolify.{{ hostvars[inventory_hostname].ansible_host }}"
-coolify_user: root
-
-# Gh app creation
-# !!!! Need github token !!!!
-github_api: https://api.github.com
-github_site: https://github.com
-# Not working yet, so it's disabled
-coolify_github_app_create_server: False
-coolify_github_api_token: ~
-coolify_github_app_url: "{{ coolify_domain }}"
-coolify_github_app_name: "coolify-{{ coolify_user }}"
-
-coolify_github_app_manifest:
-  name: "{{ coolify_github_app_name }}"
-  url: "{{ coolify_github_app_url }}"
-  hook_attributes:
-    url: "{{ coolify_github_app_url }}/api/v1/webhooks/deploy"
-  redirect_url: "{{ coolify_github_app_url }}/redirect"
-  callback_urls: ["{{ coolify_github_app_url }}/api/v1/login/github/app"]
-  public: True
-  default_permissions:
-    actions: write
-    checks: write
-    contents: write
-    deployments: write
-    discussions: write
-    environments: write
-    metadata: read
-    pull_request: write
-    webhooks: write
-    commit_statuses: write
-    email_addresses: read
-  default_events:
-    - push
-    - pull_request
-
+# possible : forcereinstall | present | absent
+swarmlet_state: present
+swarmlet_install_command_map:
+  present: ''
+  absent: uninstall-swarmlet
+  forcereinstall: reinstall-swarmlet
+# Installation directory
+swarmlet_location: /usr/local/lib/swarm
+swarmlet_location_source: "{{ swarmlet_location }}/source"
+swarmlet_ssh_dir: "{{ swarmlet_location }}/.ssh"
+swarmlet_ssh_deploy_key: "{{ swarmlet_location }}/id_ssh_rsa_swarmlet"
 # Git
-coolify_git_provider: github.com
-coolify_git_org: coollabsio
-coolify_git_repo: coolify
-# Options : main, next ,vX.X.X
-coolify_version: main
-coolify_force_update: False
+swarmlet_repo: swarmlet/swarmlet
+swarmlet_version: master
+# Used for authentication with the registry and web services / dashboards
+swarmlet_user: "{{ ansible_user_id }}"
+# Used for authentication with the registry and web services / dashboards
+swarmlet_login_user: swarmlet-user
+swarmlet_password: swarmlet
+swarmlet_ssh_authorized_keys: []
+swarmlet_ssh_authorized_keys_file: "{{ swarmlet_ssh_dir }}/authorized_keys_swarmlet"
+swarmlet_ssh_deploy_key_export_github_repo: [] #TODO
+swarmlet_ssh_deploy_key_export_github_org: [] #TODO
+# Docker Swarm node name
+swarmlet_node_hostname: master-0
+# Domain used by traefik
+swarmlet_domain: "{{ hostvars[inventory_hostname].ansible_host }}"
+swarmlet_email: "mail@{{ swarmlet_domain }}"
+# More Memory
+swarmlet_create_swap: 'false'
+# Options: matomo|swarmpit|swarmprom|portainer
+# Seperate by space and wrap in quotes to install multiple modules
+swarmlet_modules: "portainer"
+# Options: production|staging
+swarmlet_ca_env: production
+# Swarmlet final options
+swarmlet_options:
+  INSTALLATION_TYPE: "noninteractive"
+  SWARMLET_INSTALL_ROOT: "{{ swarmlet_location_source }}"
+  INSTALL_BRANCH: "{{ swarmlet_version }}"
+  INSTALL_FROM: git
+  SWARMLET_USERNAME: "{{ swarmlet_login_user }}"
+  SWARMLET_PASSWORD: "{{ swarmlet_password }}"
+  # The authorized SSH keys for git deployments
+  SSH_AUTHORIZED_KEYS: "{{ swarmlet_ssh_authorized_keys_file }}"
+  # Optional: set a new hostname
+  NEW_HOSTNAME: "{{ swarmlet_node_hostname }}"
+  ROOT_DOMAIN: "{{ swarmlet_domain }}"
+  CREATE_SWAP: "{{ swarmlet_create_swap }}"
+  INSTALL_MODULES: "{{ swarmlet_modules }}"
+  CA_SERVER: "{{ swarmlet_ca_env }}"
 
-# Docker container and sys
-coolify_app_dir: "{{ '/root' if coolify_user == 'root' else '/home/%s' % coolify_user }}"
-coolify_app_volume: "{{ '%s/coolify-repo' % coolify_app_dir }}"
-coolify_data_volume: /data/coolify
-coolify_swarm_addr: "{{ ansible_default_ipv4.interface }}"
-# Install script
-# Options :
-# "all"
-# "coolify"
-# "proxy"
-# "mongodb"
-# "upgrade-phase-1"
-# "upgrade-phase-2"
-coolify_install_mode: all
+swarmlet_env:
+  INSTALLLATION_TYPE: "noninteractive"
+  EMAIL: "{{ swarmlet_email }}"
+  # CONSUL_REPLICAS=0
+  TRAEFIK_REPLICAS: 1
 
-coolify_env_default:
-  # Domain where your Coolify instance will be available and reachable.
-  # It's the same as you set in Github OAuth App and Github App as <domain>.
-  DOMAIN: "{{ coolify_domain }}"
-  ## Let's Encrypt contact email required
-  EMAIL: "coolify@{{ coolify_domain }}"
-
-  DOCKER_NETWORK: coolabs
-
-  # JWT Token Sign Key for logging you in to Coolify's frontend
-  JWT_SIGN_KEY: jwt-key
-  # Encryption key for SECRETS - do NOT share it with others!
-  SECRETS_ENCRYPTION_KEY: jwt-encrypt-key
-
-  # Mongodb
-  # Values in case if you are using our Mongodb installation - CHANGE user and password fields!
-  MONGODB_USER: root
-  MONGODB_PASSWORD: developmentPassword4db
-  MONGODB_ROOT_PASSWORD: rootPassword4db
-  MONGODB_DB: coolLabs-prod
-
-  # Frontend only variables
-  VITE_GITHUB_APP_CLIENTID: ''
-  VITE_GITHUB_APP_NAME: ''
-
-  # Github OAuth & App secrets and private key - you can get it from Github.
-  GITHUB_APP_CLIENT_SECRET: ''
-  GITHUP_APP_WEBHOOK_SECRET: ''
-
-  # It should look like this. Newlines breaks with \n
-  GITHUB_APP_PRIVATE_KEY: ''
-
-# define values here
-coolify_env: {}
-
-_coolify_env: "{{ coolify_env_default | combine(coolify_env) }}"
+# Mutations
+swarmlet_all_secret: swarmlet-user-secrets
+swarmlet_all_secret_data: "{{ swarmlet_password }}"
+swarmlet_update_secrets_all_enable: false
+swarmlet_all_secret_obj:
+  secret_name: "{{ swarmlet_all_secret }}"
+  data: "{{ swarmlet_all_secret_data }}"
+swarmlet_update_secrets_all: [
+  "{{ swarmlet_all_secret_obj | combine({ 'stack': 'deployer' }) }}",
+  "{{ swarmlet_all_secret_obj | combine({ 'stack': 'portainer' }) }}",
+  "{{ swarmlet_all_secret_obj | combine({ 'stack': 'swarmprom' }) }}",
+  "{{ swarmlet_all_secret_obj | combine({ 'stack': 'registry' }) }}"
+]
+# Example usage
+# [ { stack: 'swarmprom', secret_name: 'swarmlet-user-secrets', data: 'swarmlet' } ]
+swarmlet_update_secrets: []
+_swarmlet_update_secrets: "{{ swarmlet_update_secrets +
+  swarmlet_update_secrets_all if swarmlet_update_secrets_all_enable or [] }}"

@@ -1,7 +1,56 @@
 ---
-- include: github_app.yml
-  when:
-    - coolify_github_api_token | d(False)
-    - coolify_github_app_create_server
+- name: 'check'
+  assert:
+    that:
+      - swarmlet_state in swarmlet_install_command_map
 
-- include: stack.yml
+- set_fact:
+    swarmlet_install_state: false
+    swarmlet_uninstall_state: false
+
+- name: 'Command exists'
+  command: which swarmlet
+  changed_when: false
+  failed_when: false
+  register: swarmlet_result
+
+- name: 'Register installation status'
+  set_fact:
+    swarmlet_install_state: true
+  changed_when: false
+  when:
+    - swarmlet_state != "absent"
+
+- name: 'Register if uninstall is needed'
+  set_fact:
+    swarmlet_uninstall_state: true
+  changed_when: false
+  when:
+    - "swarmlet_state == 'absent' or swarmlet_state == 'forcereinstall'"
+    - swarmlet_result.rc == 0
+    - "'swarmlet' in swarmlet_result.stdout"
+
+- name: Copy utils
+  copy:
+    mode: u=rx,g=rx,o=rx
+    dest: /usr/local/bin
+    src: utils
+    owner: "{{ swarmlet_user }}"
+    group: "{{ swarmlet_user }}"
+
+- name: update password
+  command: >-
+    /usr/local/bin/swarm-secrets-update {{ item.stack }} {{ item.secret_name }} {{ item.data }}
+  loop: "{{ swarmlet_update_secrets }}"
+  when:
+    - swarmlet_update_secrets | length >= 1
+
+- include: uninstall.yml
+  when: swarmlet_uninstall_state
+  become: True
+  become_user: root
+
+- include: install.yml
+  when: swarmlet_install_state
+  become: True
+  become_user: root

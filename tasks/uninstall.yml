@@ -1,0 +1,26 @@
+---
+- name: 'Remove with bin'
+  command: 'swarmlet uninstall'
+  when: swarmlet_uninstall_state
+
+- name: 'Remove services'
+  shell: 'docker service rm $(docker service ls --quiet)'
+  when: swarmlet_uninstall_state
+
+- name: 'Remove stack'
+  command: 'docker system prune --all --volumes --force'
+  when: swarmlet_uninstall_state
+
+- name: 'Remove secrets'
+  command: "docker secret rm {{ item }} || true"
+  loop:
+    - security.htpasswd
+    - swarmlet-user-secrets
+
+- name: 'Remove folders'
+  file:
+    path: "{{ item }}"
+    state: asbent
+  loop:
+    - "{{ swarmlet_location }}"
+    # - "/mnt/gfs"
