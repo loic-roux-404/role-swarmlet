@@ -7,19 +7,18 @@ swarmlet_install_command_map:
   forcereinstall: reinstall-swarmlet
 # Installation directory
 swarmlet_location: /usr/local/lib/swarm
+swarmlet_user: "git"
 swarmlet_location_source: "{{ swarmlet_location }}/source"
-swarmlet_ssh_dir: "{{ swarmlet_location }}/.ssh"
-swarmlet_ssh_deploy_key: "{{ swarmlet_location }}/id_ssh_rsa_swarmlet"
+swarmlet_ssh_dir: "~/.ssh"
+swarmlet_ssh_deploy_key: "{{ swarmlet_ssh_dir }}/id_ssh_rsa_swarmlet"
 # Git
 swarmlet_repo: swarmlet/swarmlet
 swarmlet_version: master
 # Used for authentication with the registry and web services / dashboards
-swarmlet_user: "{{ ansible_user_id }}"
-# Used for authentication with the registry and web services / dashboards
 swarmlet_login_user: swarmlet-user
 swarmlet_password: swarmlet
 swarmlet_ssh_authorized_keys: []
-swarmlet_ssh_authorized_keys_file: "{{ swarmlet_ssh_dir }}/authorized_keys_swarmlet"
+swarmlet_ssh_authorized_keys_file: "{{ swarmlet_ssh_dir }}/authorized_keys"
 swarmlet_ssh_deploy_key_export_github_repo: [] #TODO
 swarmlet_ssh_deploy_key_export_github_org: [] #TODO
 # Docker Swarm node name
@@ -34,26 +33,11 @@ swarmlet_create_swap: 'false'
 swarmlet_modules: "portainer"
 # Options: production|staging
 swarmlet_ca_env: production
-# Swarmlet final options
-swarmlet_options:
-  INSTALLATION_TYPE: "noninteractive"
-  SWARMLET_INSTALL_ROOT: "{{ swarmlet_location_source }}"
-  INSTALL_BRANCH: "{{ swarmlet_version }}"
-  INSTALL_FROM: git
-  SWARMLET_USERNAME: "{{ swarmlet_login_user }}"
-  SWARMLET_PASSWORD: "{{ swarmlet_password }}"
-  # The authorized SSH keys for git deployments
-  SSH_AUTHORIZED_KEYS: "{{ swarmlet_ssh_authorized_keys_file }}"
-  # Optional: set a new hostname
-  NEW_HOSTNAME: "{{ swarmlet_node_hostname }}"
-  ROOT_DOMAIN: "{{ swarmlet_domain }}"
-  CREATE_SWAP: "{{ swarmlet_create_swap }}"
-  INSTALL_MODULES: "{{ swarmlet_modules }}"
-  CA_SERVER: "{{ swarmlet_ca_env }}"
 
 swarmlet_env:
   INSTALLLATION_TYPE: "noninteractive"
   EMAIL: "{{ swarmlet_email }}"
+  GIT_USER: "{{ swarmlet_user }}"
   # CONSUL_REPLICAS=0
   TRAEFIK_REPLICAS: 1
 
@@ -75,3 +59,7 @@ swarmlet_update_secrets_all: [
 swarmlet_update_secrets: []
 _swarmlet_update_secrets: "{{ swarmlet_update_secrets +
   swarmlet_update_secrets_all if swarmlet_update_secrets_all_enable or [] }}"
+
+# Overrided by facts
+swarmlet_install_state: false
+swarmlet_uninstall_state: false

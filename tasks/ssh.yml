@@ -1,0 +1,28 @@
+---
+- name: 'deploy key - Generate'
+  community.crypto.openssh_keypair:
+    path: "{{ swarmlet_ssh_deploy_key }}"
+    size: 4096
+    comment: "swarmlet"
+  register: deploy_key
+  tags: [ssh-swarmlet]
+
+- name: 'deploy key - add to authorized keys'
+  ansible.posix.authorized_key:
+    path: "{{ swarmlet_ssh_authorized_keys_file }}"
+    key: "{{ item }}"
+    # TODO key_options: 'no-port-forwarding,from="10.0.1.1"' Only from git CI provider
+    user: "{{ swarmlet_user }}"
+    state: present
+  loop: "{{ swarmlet_ssh_authorized_keys + [ deploy_key.public_key ] }}"
+  when:
+    - swarmlet_ssh_authorized_keys | length >= 1 or deploy_key.public_key | d(False)
+  tags: [ssh-swarmlet]
+
+# TODO : upload this to github
+- name: 'deploy key - Fetch on host in /tmp/swarmlet_private_key'
+  ansible.builtin.fetch:
+    src: "{{ swarmlet_ssh_deploy_key }}"
+    dest: /tmp/swarmlet_private_key
+    flat: yes
+  tags: [ssh-swarmlet]

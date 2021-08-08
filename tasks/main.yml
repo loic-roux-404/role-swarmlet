@@ -4,11 +4,9 @@
     that:
       - swarmlet_state in swarmlet_install_command_map
 
-- set_fact:
-    swarmlet_install_state: false
-    swarmlet_uninstall_state: false
-
 - name: 'Command exists'
+  become: True
+  become_user: root
   command: which swarmlet
   changed_when: false
   failed_when: false
@@ -35,8 +33,6 @@
     mode: u=rx,g=rx,o=rx
     dest: /usr/local/bin
     src: utils
-    owner: "{{ swarmlet_user }}"
-    group: "{{ swarmlet_user }}"
 
 - name: update password
   command: >-
@@ -51,6 +47,14 @@
   become_user: root
 
 - include: install.yml
-  when: swarmlet_install_state
+  when:
+    - swarmlet_install_state
+    - "'swarmlet' not in swarmlet_result.stdout"
   become: True
   become_user: root
+
+- include: ssh.yml
+  when: swarmlet_install_state or ('swarmlet-ssh' in ansible_run_tags)
+  become: True
+  become_user: "{{ swarmlet_user }}"
+  tags: [swarmlet-ssh]

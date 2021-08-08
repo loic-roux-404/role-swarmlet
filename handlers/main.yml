@@ -1,7 +1,8 @@
 ---
 
-# - name: restart swarmlet
+# - name: restart ssh
 #   service:
-#     name: swarmlet
+#     name: sshd
 #     state: restarted
 #   become: True
+#   become_user: root

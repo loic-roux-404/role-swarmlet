@@ -12,7 +12,7 @@
   when: swarmlet_uninstall_state
 
 - name: 'Remove secrets'
-  command: "docker secret rm {{ item }} || true"
+  command: "docker secret rm {{ item }} || exit 0"
   loop:
     - security.htpasswd
     - swarmlet-user-secrets
